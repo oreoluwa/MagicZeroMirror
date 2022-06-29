@@ -3,6 +3,9 @@
     "name"        : "MagicMirror",
     "script"      : "./mmstart.sh",
     "cwd"         : "~",
-    "watch"       : ["./MagicMirror/config/config.js"]
+    "watch"       : ["./MagicMirror/config/config.js"],
+    "env"         : {
+      "DEBUG": "*"
+    }
   }]
 }
