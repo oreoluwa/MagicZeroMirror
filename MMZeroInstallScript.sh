@@ -26,7 +26,7 @@ clone_with_git() {
     git -C "$2" pull || git clone https://github.com/$1.git "$2"
 }
 echo 'Downloading MagicMirror Raspberry Pi Zero W installation files'
-clone_with_git AchimPieters/MagicZeroMirror MagicZeroMirror
+clone_with_git oreoluwa/MagicZeroMirror MagicZeroMirror
 
 echo 'Updating Pi'
 sudo apt-get update;
