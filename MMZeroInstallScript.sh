@@ -32,8 +32,8 @@ echo 'Updating Pi'
 sudo apt-get update;
 
 echo 'Upgrading Pi'
-sudo apt-get upgrade;
-sudo apt-get upgrade --fix-missing;
+sudo apt-get upgrade -y;
+sudo apt-get upgrade --fix-missing -y;
 
 NODE_VER=18.4.0
 if ! node --version | grep -q ${NODE_VER}; then
