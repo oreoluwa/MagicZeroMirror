@@ -21,8 +21,12 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
+
+clone_with_git() {
+    git -C "$2" pull || git clone https://github.com/$1.git "$2"
+}
 echo 'Downloading MagicMirror Raspberry Pi Zero W installation files'
-git clone --recursive https://github.com/AchimPieters/MagicZeroMirror.git
+clone_with_git AchimPieters/MagicZeroMirror MagicZeroMirror
 
 echo 'Updating Pi'
 sudo apt-get update;
@@ -31,21 +35,22 @@ echo 'Upgrading Pi'
 sudo apt-get upgrade;
 sudo apt-get upgrade --fix-missing;
 
-echo 'Downloading node v10.16.0'
-sudo wget https://nodejs.org/dist/v10.16.0/node-v10.16.0-linux-armv6l.tar.xz;
-
-echo 'Extracting node v11.6.0'
-tar xvf node-v10.16.0-linux-armv6l.tar.xz;
-cd node-v10.16.0-linux-armv6l;
-sudo cp -R * /usr/local/;
+NODE_VER=18.4.0
+if ! node --version | grep -q ${NODE_VER}; then
+  (cat /proc/cpuinfo | grep -q "Pi Zero") && if [ ! -d node-v${NODE_VER}-linux-armv6l ]; then
+    echo "Installing nodejs ${NODE_VER} for armv6 from unofficial builds..."
+    curl -O https://unofficial-builds.nodejs.org/download/release/v${NODE_VER}/node-v${NODE_VER}-linux-armv6l.tar.xz
+    tar -xf node-v${NODE_VER}-linux-armv6l.tar.xz
+  fi
+  echo "Adding node to the PATH"
+  PATH=$(pwd)/node-v${NODE_VER}-linux-armv6l/bin:${PATH}
+fi
 
 echo 'Installing Magic Mirror Dependencies'
 cd ~;
-sudo apt install npm -y;
-sudo apt install git;
 
 echo 'Cloning the latest version of Magic Mirror2'
-git clone https://github.com/MichMich/MagicMirror;
+clone_with_git MichMich/MagicMirror MagicMirror
 
 echo 'Installing Magic Mirror Dependencies'
 cd MagicMirror;
@@ -67,19 +72,19 @@ sudo plymouth-set-default-theme -R MagicMirror;
 
 echo 'Copy Magic Mirror2 startup scripts'
 cd ~;
-sudo mv ~/MagicZeroMirror/mmstart.sh ~/mmstart.sh;
-sudo mv ~/MagicZeroMirror/chromium_start.sh ~/chromium_start.sh;
-sudo mv ~/MagicZeroMirror/pm2_MagicMirror.json ~/pm2_MagicMirror.json;
+mv ~/MagicZeroMirror/mmstart.sh ~/mmstart.sh;
+mv ~/MagicZeroMirror/chromium_start.sh ~/chromium_start.sh;
+mv ~/MagicZeroMirror/pm2_MagicMirror.json ~/pm2_MagicMirror.json;
 
-sudo chmod a+x mmstart.sh;
-sudo chmod a+x chromium_start.sh;
-sudo chmod a+x pm2_MagicMirror.json;
+chmod a+x mmstart.sh;
+chmod a+x chromium_start.sh;
+chmod pm2_MagicMirror.json;
 
 echo 'Use pm2 control like a service MagicMirror'
 cd ~;
-sudo npm install -g pm2;
+npm install -g pm2;
 pm2 startup;
-sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi;
+sudo env PATH=$PATH:/home/pi/node-v${NODE_VER}-linux-armv6l/bin pm2 startup systemd -u pi --hp /home/pi
 pm2 start pm2_MagicMirror.json;
 pm2 save;
 echo 'Magic Mirror should begin shortly'
